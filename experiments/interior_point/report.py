@@ -484,7 +484,7 @@ def main() -> None:
     args = parser.parse_args()
     if args.raw_results_dir is None:
         parser.error(
-            "Source scripts/paths.sh to set CPO3_RESULTS_ROOT, or pass --raw-results-dir."
+            "Source scripts/paths_local.sh or scripts/paths_savio.sh, or pass --raw-results-dir."
         )
     if not isfinite(args.verify_tol) or args.verify_tol <= 0:
         parser.error("--verify-tol must be finite and positive")

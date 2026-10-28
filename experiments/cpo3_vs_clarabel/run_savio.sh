@@ -12,11 +12,10 @@
 
 set -euo pipefail
 
-# From the repository root: bash experiments/cpo3_vs_clarabel/run.sh [config ...]
+# From the repository root: bash experiments/cpo3_vs_clarabel/run_savio.sh [config ...]
 # No arguments submits every config. --worker is used by the submitted jobs.
-source "${CPO3_REPO_ROOT:-$PWD}/scripts/paths.sh"
+source "$(dirname "$0")/../../scripts/paths_savio.sh"
 EXPERIMENT_ROOT="$CPO3_REPO_ROOT/experiments/cpo3_vs_clarabel"
-RESULTS_ROOT="$CPO3_RESULTS_ROOT/cpo3_vs_clarabel/results"
 
 worker=false
 if [[ "${1:-}" == --worker ]]; then
@@ -45,7 +44,7 @@ if [[ "$worker" == false ]]; then
         sbatch --job-name="cpo3-vs-clarabel-$config" \
             --chdir="$CPO3_REPO_ROOT" \
             --output="$EXPERIMENT_ROOT/logs/slurm-%j.out" \
-            "$EXPERIMENT_ROOT/run.sh" --worker "$config"
+            "$EXPERIMENT_ROOT/run_savio.sh" --worker "$config"
     done
     exit
 fi
@@ -54,12 +53,4 @@ export OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 RAYON_NUM_THREADS=1
 export SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt
 
 cd "$CPO3_REPO_ROOT"
-config="${configs[0]}"
-# resume: false reruns solves but does not clear old JSONL records.
-run_dir="$RESULTS_ROOT/$config"
-echo "Clearing previous results: $run_dir"
-rm -rf -- "$run_dir"
-uv run --no-sync bench run "$EXPERIMENT_ROOT/configs/$config.yaml" \
-    --data-root "$CPO3_DATA_ROOT" \
-    --run-dir "$run_dir" \
-    --no-stream-output
+uv run --no-sync python scripts/run_experiment.py cpo3_vs_clarabel "${configs[0]}"

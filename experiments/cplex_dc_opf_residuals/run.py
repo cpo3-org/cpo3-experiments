@@ -1,4 +1,4 @@
-"""Run with: bash experiments/cplex_dc_opf_residuals/run.sh
+"""Run with: bash experiments/cplex_dc_opf_residuals/run_savio.sh
 
 Reproduce failed DC-OPF LPs from central_path repetition 1.
 Write both sets of absolute metrics to results/comparison.csv and full

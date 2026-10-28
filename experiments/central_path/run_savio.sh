@@ -12,13 +12,12 @@
 
 set -euo pipefail
 
-# From the repository root: bash experiments/central_path/run.sh [solver ...]
+# From the repository root: bash experiments/central_path/run_savio.sh [solver ...]
 # No arguments submits every solver. Each solver job runs three full corpus passes
 # consecutively; solvers run in parallel. --worker is used by the submitted jobs.
 
-source "${CPO3_REPO_ROOT:-$PWD}/scripts/paths.sh"
+source "$(dirname "$0")/../../scripts/paths_savio.sh"
 EXPERIMENT_ROOT="$CPO3_REPO_ROOT/experiments/central_path"
-RESULTS_ROOT="$CPO3_RESULTS_ROOT/central_path/results"
 
 worker=false
 if [[ "${1:-}" == --worker ]]; then
@@ -47,7 +46,7 @@ if [[ "$worker" == false ]]; then
         sbatch --job-name="central-path-$solver" \
             --chdir="$CPO3_REPO_ROOT" \
             --output="$EXPERIMENT_ROOT/logs/slurm-%j.out" \
-            "$EXPERIMENT_ROOT/run.sh" --worker "$solver"
+            "$EXPERIMENT_ROOT/run_savio.sh" --worker "$solver"
     done
     exit
 fi
@@ -58,16 +57,4 @@ export SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt
 export LD_PRELOAD="$HOME/ibm/cplex222/cplex/bin/x86-64_linux/libcplex2220.so${LD_PRELOAD:+:$LD_PRELOAD}"
 
 cd "$CPO3_REPO_ROOT"
-solver="${solvers[0]}"
-run_dir="$RESULTS_ROOT/$solver"
-
-echo "Clearing previous results: $run_dir"
-rm -rf -- "$run_dir"
-
-for repeat in 1 2 3; do
-    echo "Running $solver: corpus repetition $repeat/3"
-    uv run --no-sync bench run "$EXPERIMENT_ROOT/configs/$solver.yaml" \
-        --data-root "$CPO3_DATA_ROOT" \
-        --run-dir "$run_dir/repeat-$repeat" \
-        --no-stream-output
-done
+uv run --no-sync python scripts/run_experiment.py central_path "${solvers[0]}"
