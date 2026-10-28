@@ -44,6 +44,29 @@ LINESTYLES = {
 REPEATS = {1, 2, 3}
 
 
+def summarize_overall(results: pl.DataFrame, shift: float) -> pl.DataFrame:
+    """Appendix summary using verified median times and penalized failures."""
+    runtime = (
+        pl.when(pl.col("time").is_finite())
+        .then(pl.col("time"))
+        .otherwise(TIME_LIMIT_SECONDS)
+    )
+    table = pl.DataFrame({"solver": list(LABELS)})
+    for label, subset in (
+        ("All", results),
+        ("LP", results.filter(pl.col("problem_type") == "lp")),
+        ("QP", results.filter(pl.col("problem_type") == "qp")),
+    ):
+        summary = subset.group_by("solver").agg(
+            pl.col("time").is_finite().sum().alias(f"{label} solved"),
+            ((runtime + shift).log().mean().exp() - shift).alias(f"{label} time (s)"),
+        )
+        table = table.join(summary, on="solver", maintain_order="left")
+    return table.with_columns(pl.col("solver").replace_strict(LABELS)).rename(
+        {"solver": "Solver"}
+    )
+
+
 def create_lp_qp_plot(results: pl.DataFrame, output_dir: Path) -> None:
     """Compact, full-width appendix figure with a shared solver legend."""
     fig, axes = plt.subplots(2, 1, figsize=(119 / 25.4, 3.5), sharex=True)
@@ -188,6 +211,12 @@ def main() -> None:
         "Finite medians require at least 2 verified runs. Residual plots include all verified repetitions."
     )
     with pl.Config(tbl_rows=-1, tbl_cols=-1, tbl_width_chars=240, float_precision=4):
+        print(
+            f"All / LP / QP summary: shifted geometric mean times, shift={args.shift:g}s; "
+            f"failures penalized at {TIME_LIMIT_SECONDS:g}s."
+        )
+        with pl.Config(float_precision=2):
+            print(summarize_overall(results, args.shift))
         print("Status counts across individual repetitions:")
         print(status_counts)
         print("Problems by number of verified repetitions:")

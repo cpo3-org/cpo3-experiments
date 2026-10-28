@@ -180,7 +180,7 @@ def create_plots(results: pl.DataFrame, output: Path, verify_tol: float) -> None
             results.filter(
                 (pl.col("solver") == solver)
                 & (pl.col("infeasibility_tolerance") == tolerance)
-                & (pl.col("normalized_certificate_residual") <= verify_tol)
+                & verified_solve("normalized_certificate_residual", verify_tol)
             )["normalized_certificate_residual"]
             .drop_nulls()
             .clip(lower_bound=1e-16)
