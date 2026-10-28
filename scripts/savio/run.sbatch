@@ -12,7 +12,7 @@
 
 set -euo pipefail
 # Submission sets --chdir to the repository; Slurm copies this script elsewhere.
-source "$PWD/scripts/paths_savio.sh"
+source "$PWD/scripts/savio/paths.sh"
 export SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt
 # Current CPLEX configurations are named cplex in both benchmark experiments.
 if [[ "${2:-}" == cplex ]]; then

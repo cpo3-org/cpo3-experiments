@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
-source "$(dirname "$0")/paths_savio.sh"
+source "$(dirname "$0")/paths.sh"
 cd "$CPO3_REPO_ROOT"
 
 case "${1:-}" in
     presolve_off|presolve_default|cpo3_vs_clarabel) experiment=$1 ;;
     *)
-        echo "Usage: bash scripts/submit_savio.sh {presolve_off|presolve_default|cpo3_vs_clarabel} [configs ...]" >&2
+        echo "Usage: bash scripts/savio/submit.sh {presolve_off|presolve_default|cpo3_vs_clarabel} [configs ...]" >&2
         exit 1
         ;;
 esac
@@ -34,5 +34,5 @@ mkdir -p "$logs"
 for config in "${configs[@]}"; do
     sbatch --job-name="${experiment//_/-}-$config" \
         --chdir="$CPO3_REPO_ROOT" --output="$logs/slurm-%j.out" \
-        "$CPO3_REPO_ROOT/scripts/run_savio.sbatch" "$experiment" "$config"
+        "$CPO3_REPO_ROOT/scripts/savio/run.sbatch" "$experiment" "$config"
 done

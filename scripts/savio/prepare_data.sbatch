@@ -11,7 +11,7 @@
 
 set -euo pipefail
 
-source "${CPO3_REPO_ROOT:-$PWD}/scripts/paths_savio.sh"
+source "${CPO3_REPO_ROOT:-$PWD}/scripts/savio/paths.sh"
 
 export SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt
 
