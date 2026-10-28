@@ -1,0 +1,17 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{Warm-start results for Maros--M\'esz\'aros QPs. The accepted column uses every paired trial with a warm attempt, and agreement is the rate over accepted trials. Iterations and speedup are conditioned on both acceptance and status agreement, since a rejected warm start runs as a cold start and a disagreeing pair did not solve the same problem; they are medians of problem medians, over whichever status the pair agreed on rather than solved cases alone.}
+\label{tab:warm-qp}
+\begin{tabular}{ccccc}
+\hline
+$\delta$ & Accepted (\%) & Median iterations (warm / cold) & Median speedup ($\times$) & Status agreement (\%) \\
+\hline
+$0$ & 100\% & 0 / 20.5 & 1050.53 & 100\% \\
+$10^{-4}$ & 100\% & 7.5 / 20.5 & 2.66 & 100\% \\
+$10^{-3}$ & 100\% & 10 / 20.5 & 1.74 & 100\% \\
+$10^{-2}$ & 100\% & 10 / 20.5 & 2.36 & 100\% \\
+$10^{-1}$ & 100\% & 19.5 / 19.5 & 1.05 & 100\% \\
+\hline
+\end{tabular}
+\end{table}

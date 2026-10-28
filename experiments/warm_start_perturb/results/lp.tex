@@ -1,0 +1,17 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{Warm-start results for Netlib LPs. The accepted column uses every paired trial with a warm attempt, and agreement is the rate over accepted trials. Iterations and speedup are conditioned on both acceptance and status agreement, since a rejected warm start runs as a cold start and a disagreeing pair did not solve the same problem; they are medians of problem medians, over whichever status the pair agreed on rather than solved cases alone.}
+\label{tab:warm-lp}
+\begin{tabular}{ccccc}
+\hline
+$\delta$ & Accepted (\%) & Median iterations (warm / cold) & Median speedup ($\times$) & Status agreement (\%) \\
+\hline
+$0$ & 100\% & 0 / 19.5 & 26.36 & 100\% \\
+$10^{-4}$ & 100\% & 5 / 20.5 & 2.86 & 100\% \\
+$10^{-3}$ & 100\% & 5.5 / 19.5 & 2.35 & 100\% \\
+$10^{-2}$ & 100\% & 26.5 / 36.5 & 1.59 & 100\% \\
+$10^{-1}$ & 100\% & 8 / 12 & 1.24 & 50\% \\
+\hline
+\end{tabular}
+\end{table}
