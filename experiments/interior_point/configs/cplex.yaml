@@ -1,0 +1,34 @@
+run:
+  resume: false
+  parallelism: 16
+  worker_memory_limit_mb: 20480
+  timeout_seconds: 300
+datasets:
+- name: dc_opf
+  dataset_options:
+    subset: feasible
+- kennington
+- maros_meszaros
+- miplib
+- mittelmann
+- name: mpc_qpbenchmark
+  dataset_options:
+    subset: all
+- name: netlib
+  dataset_options:
+    subset: feasible
+- qplib
+
+solvers:
+- id: cplex_eps=1e-8
+  solver: cplex
+  settings:
+    time_limit: 300
+    threads: 1
+    lpmethod: 4
+    qpmethod: 4
+    barrier.limits.iteration: 1_000_000
+    simplex.limits.iterations: 1_000_000
+    simplex.tolerances.feasibility: 1.0e-08
+    simplex.tolerances.optimality: 1.0e-08
+    barrier.convergetol: 1.0e-08

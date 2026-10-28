@@ -1,0 +1,32 @@
+run:
+  resume: false
+  parallelism: 16
+  worker_memory_limit_mb: 20480
+  timeout_seconds: 300
+datasets:
+- name: dc_opf
+  dataset_options:
+    subset: feasible
+- kennington
+- maros_meszaros
+- miplib
+- mittelmann
+- name: mpc_qpbenchmark
+  dataset_options:
+    subset: all
+- name: netlib
+  dataset_options:
+    subset: feasible
+- qplib
+
+solvers:
+  - id: clarabel_eps=1e-8
+    solver: clarabel
+    settings:
+      time_limit: 300
+      threads: 1
+      max_iter: 1_000_000
+      presolve_enable: false
+      tol_feas: 1.0e-8
+      tol_gap_abs: 1.0e-8
+      tol_gap_rel: 1.0e-8

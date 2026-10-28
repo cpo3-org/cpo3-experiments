@@ -1,0 +1,4 @@
+problems,clarabel_only,cpo3_only,shared,clarabel_median_seconds,clarabel_median_iterations,cpo3_median_seconds,cpo3_median_iterations
+All,1,51,580,0.05862876700120978,14.5,0.04076673099916661,18.0
+LP,0,42,354,0.2256923140012077,19.0,0.17174410699954024,25.0
+QP,1,9,226,0.007074420498611289,11.0,0.0044241615032660775,11.0

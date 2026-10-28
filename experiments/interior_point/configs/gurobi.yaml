@@ -1,0 +1,33 @@
+run:
+  resume: false
+  parallelism: 16
+  worker_memory_limit_mb: 20480
+  timeout_seconds: 300
+datasets:
+- name: dc_opf
+  dataset_options:
+    subset: feasible
+- kennington
+- maros_meszaros
+- miplib
+- mittelmann
+- name: mpc_qpbenchmark
+  dataset_options:
+    subset: all
+- name: netlib
+  dataset_options:
+    subset: feasible
+- qplib
+
+solvers:
+- id: gurobi_eps=1e-8
+  solver: gurobi
+  settings:
+    time_limit: 300
+    threads: 1
+    Method: 2
+    IterationLimit: 1_000_000
+    BarIterLimit: 1_000_000
+    FeasibilityTol: 1.0e-08
+    OptimalityTol: 1.0e-08
+    BarConvTol: 1.0e-08

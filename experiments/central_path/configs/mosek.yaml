@@ -1,0 +1,38 @@
+run:
+  resume: false
+  parallelism: 16
+  worker_memory_limit_mb: 20480
+  timeout_seconds: 300
+datasets:
+- name: dc_opf
+  dataset_options:
+    subset: feasible
+- kennington
+- maros_meszaros
+- miplib
+- mittelmann
+- name: mpc_qpbenchmark
+  dataset_options:
+    subset: all
+- name: netlib
+  dataset_options:
+    subset: feasible
+- qplib
+
+solvers:
+- id: mosek_eps=1e-8
+  solver: mosek
+  settings:
+    time_limit: 300
+    threads: 1
+    MSK_IPAR_PRESOLVE_USE: 0
+    MSK_IPAR_OPTIMIZER: 4
+    MSK_IPAR_INTPNT_BASIS: 0
+    MSK_IPAR_INTPNT_MAX_ITERATIONS: 1_000_000
+    MSK_IPAR_SIM_MAX_ITERATIONS: 1_000_000
+    MSK_DPAR_INTPNT_TOL_PFEAS: 1.0e-08
+    MSK_DPAR_INTPNT_TOL_DFEAS: 1.0e-08
+    MSK_DPAR_INTPNT_TOL_REL_GAP: 1.0e-08
+    MSK_DPAR_INTPNT_QO_TOL_PFEAS: 1.0e-08
+    MSK_DPAR_INTPNT_QO_TOL_DFEAS: 1.0e-08
+    MSK_DPAR_INTPNT_QO_TOL_REL_GAP: 1.0e-08

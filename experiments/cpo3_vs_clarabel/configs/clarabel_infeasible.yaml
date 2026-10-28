@@ -1,0 +1,68 @@
+run:
+  resume: false
+  parallelism: 16
+  worker_memory_limit_mb: 20480
+  timeout_seconds: 300
+datasets:
+- name: dc_opf
+  id: dc_opf_infeasible
+  dataset_options:
+    subset: infeasible
+- name: netlib
+  id: netlib_infeasible
+  dataset_options:
+    subset: infeasible
+
+solvers:
+  - id: clarabel_eps=1e-8_infeas=1e-7
+    solver: clarabel
+    settings:
+      time_limit: 300
+      threads: 1
+      direct_solve_method: faer
+      max_iter: 1_000_000
+      presolve_enable: false
+      tol_feas: 1.0e-8
+      tol_gap_abs: 1.0e-8
+      tol_gap_rel: 1.0e-8
+      tol_infeas_abs: 1.0e-7
+      tol_infeas_rel: 1.0e-7
+  - id: clarabel_eps=1e-8_infeas=1e-8
+    solver: clarabel
+    settings:
+      time_limit: 300
+      threads: 1
+      direct_solve_method: faer
+      max_iter: 1_000_000
+      presolve_enable: false
+      tol_feas: 1.0e-8
+      tol_gap_abs: 1.0e-8
+      tol_gap_rel: 1.0e-8
+      tol_infeas_abs: 1.0e-8
+      tol_infeas_rel: 1.0e-8
+  - id: clarabel_eps=1e-8_infeas=1e-9
+    solver: clarabel
+    settings:
+      time_limit: 300
+      threads: 1
+      direct_solve_method: faer
+      max_iter: 1_000_000
+      presolve_enable: false
+      tol_feas: 1.0e-8
+      tol_gap_abs: 1.0e-8
+      tol_gap_rel: 1.0e-8
+      tol_infeas_abs: 1.0e-9
+      tol_infeas_rel: 1.0e-9
+  - id: clarabel_eps=1e-8_infeas=1e-10
+    solver: clarabel
+    settings:
+      time_limit: 300
+      threads: 1
+      direct_solve_method: faer
+      max_iter: 1_000_000
+      presolve_enable: false
+      tol_feas: 1.0e-8
+      tol_gap_abs: 1.0e-8
+      tol_gap_rel: 1.0e-8
+      tol_infeas_abs: 1.0e-10
+      tol_infeas_rel: 1.0e-10

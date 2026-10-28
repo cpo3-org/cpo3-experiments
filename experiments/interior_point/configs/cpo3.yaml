@@ -1,0 +1,29 @@
+run:
+  resume: false
+  parallelism: 16
+  worker_memory_limit_mb: 20480
+  timeout_seconds: 300
+datasets:
+- name: dc_opf
+  dataset_options:
+    subset: feasible
+- kennington
+- maros_meszaros
+- miplib
+- mittelmann
+- name: mpc_qpbenchmark
+  dataset_options:
+    subset: all
+- name: netlib
+  dataset_options:
+    subset: feasible
+- qplib
+
+solvers:
+  - id: cpo3_eps=1e-8
+    solver: cpo3
+    settings:
+      threads: 1
+      time_limit: 300
+      max_iters: 1_000_000
+      eps: 1.0e-8

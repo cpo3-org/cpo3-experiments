@@ -1,0 +1,56 @@
+run:
+  resume: false
+  parallelism: 16
+  worker_memory_limit_mb: 20480
+  timeout_seconds: 300
+datasets:
+- name: dc_opf
+  id: dc_opf_infeasible
+  dataset_options:
+    subset: infeasible
+- name: netlib
+  id: netlib_infeasible
+  dataset_options:
+    subset: infeasible
+
+solvers:
+  - id: cpo3_eps=1e-8_infeas=1e-7
+    solver: cpo3
+    settings:
+      threads: 1
+      time_limit: 300
+      presolve: false
+      max_iters: 1_000_000
+      eps: 1.0e-8
+      tol_infeas_abs: 1.0e-7
+      tol_infeas_rel: 1.0e-7
+  - id: cpo3_eps=1e-8_infeas=1e-8
+    solver: cpo3
+    settings:
+      threads: 1
+      time_limit: 300
+      presolve: false
+      max_iters: 1_000_000
+      eps: 1.0e-8
+      tol_infeas_abs: 1.0e-8
+      tol_infeas_rel: 1.0e-8
+  - id: cpo3_eps=1e-8_infeas=1e-9
+    solver: cpo3
+    settings:
+      threads: 1
+      time_limit: 300
+      presolve: false
+      max_iters: 1_000_000
+      eps: 1.0e-8
+      tol_infeas_abs: 1.0e-9
+      tol_infeas_rel: 1.0e-9
+  - id: cpo3_eps=1e-8_infeas=1e-10
+    solver: cpo3
+    settings:
+      threads: 1
+      time_limit: 300
+      presolve: false
+      max_iters: 1_000_000
+      eps: 1.0e-8
+      tol_infeas_abs: 1.0e-10
+      tol_infeas_rel: 1.0e-10

@@ -1,0 +1,18 @@
+/.venv/
+/.ruff_cache/
+__pycache__/
+/scripts/prepare-data-*.out
+
+/experiments/central_path/logs/
+/experiments/cplex_tolerance/logs/
+/experiments/interior_point/logs/
+/experiments/cpo3_vs_clarabel/logs/
+/experiments/warm_start/logs/
+
+# Local experiments
+/experiments/cpo3_commits/
+/experiments/cplex_ranged_rows
+/experiments/cplex_tolerance
+
+# Old experiment results
+/experiments/*/archives

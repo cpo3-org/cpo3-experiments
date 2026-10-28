@@ -1,0 +1,30 @@
+[project]
+name = "cpo3-experiments"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "clarabel==0.11.1",
+    "cplex==22.2.0.1",
+    "gurobipy==13.0.3",
+    "highspy[extras]==1.15.1",
+    "mosek==11.2.4",
+    "piqp==0.6.4",
+    "numpy",
+    "polars",
+    "scipy",
+    "cpo3",
+    "solver-benchmarks",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+clarabel = { git = "https://github.com/matteosantama/Clarabel.rs.git", rev = "d5da79a6529e611eab2364e6305b3af8a6aaf0cb" }
+cpo3 = { git = "https://github.com/cpo3-org/cpo3.git", rev = "b8e87aec0d533a6926fceff4ee7975737c136390" }
+solver-benchmarks = { git = "ssh://git@github.com/bodono/solver_benchmarks.git", rev = "2bf9474776c93d95b52aaebec41914a6ea83d788" }
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.8",
+]

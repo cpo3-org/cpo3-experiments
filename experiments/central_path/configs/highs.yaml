@@ -1,0 +1,35 @@
+run:
+  resume: false
+  parallelism: 16
+  worker_memory_limit_mb: 20480
+  timeout_seconds: 300
+datasets:
+- name: dc_opf
+  dataset_options:
+    subset: feasible
+- kennington
+- maros_meszaros
+- miplib
+- mittelmann
+- name: mpc_qpbenchmark
+  dataset_options:
+    subset: all
+- name: netlib
+  dataset_options:
+    subset: feasible
+- qplib
+
+solvers:
+  - id: highs_eps=1e-8
+    solver: highs
+    settings:
+      time_limit: 300
+      threads: 1
+      solver: hipo
+      run_crossover: "off"
+      max_iter: 1_000_000
+      presolve: "off"
+      primal_feasibility_tolerance: 1.0e-8
+      dual_feasibility_tolerance: 1.0e-8
+      optimality_tolerance: 1.0e-8
+      ipm_optimality_tolerance: 1.0e-8
