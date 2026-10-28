@@ -3,6 +3,7 @@ import json
 import os
 from math import isfinite, log10
 from pathlib import Path
+from typing import cast
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -204,10 +205,11 @@ def certificate_residual(result: dict, normalized: bool = False) -> float | None
     if kkt.get("certificate") != "primal_infeasible" or kkt.get("unsupported_cones"):
         return None
     aty_key = "Aty_inf" if normalized else "Aty_rel"
-    values = [kkt.get(key) for key in ("bty", aty_key, "dual_cone_res")]
-    if any(value is None or not isfinite(value) for value in values):
+    bty, aty, cone = (kkt.get(key) for key in ("bty", aty_key, "dual_cone_res"))
+    if bty is None or aty is None or cone is None:
         return None
-    bty, aty, cone = values
+    if not all(isfinite(value) for value in (bty, aty, cone)):
+        return None
     # Scaling y by -1/(bᵀy) scales both absolute residuals by the same factor.
     return max(aty, cone) / (-bty if normalized else 1) if bty < 0 else None
 
@@ -284,7 +286,7 @@ def create_plots(results: pl.DataFrame, output: Path, verify_tol: float) -> None
     results = results.filter(pl.col("dataset").str.ends_with("_infeasible"))
     solvers = ["cpo3", "clarabel"]
     tolerances = sorted(results["infeasibility_tolerance"].unique(), reverse=True)
-    colors = plt.get_cmap("tab10").colors[: len(tolerances)]
+    colors = [plt.get_cmap("tab10")(i) for i in range(len(tolerances))]
     # MPC recommends Helvetica/Arial at 8–12 pt; allow local sans-serif fallbacks.
     plt.rcParams.update(
         {
@@ -347,7 +349,7 @@ def create_refinement_plot(
         return
     assert (shared["refinement_passes"] >= 0).all()
     count = shared.select("dataset", "problem").unique().height
-    maximum = max(1, shared["refinement_passes"].max())
+    maximum = max(1, cast(int, shared["refinement_passes"].max()))
     upper = 10 ** max(1, int(np.ceil(np.log10(maximum))))
     # MPC artwork: 119 mm width, consistent 8–12 pt sans-serif lettering,
     # embedded fonts, lines >= 0.3 pt, and titles/captions in the manuscript.

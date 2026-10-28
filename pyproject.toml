@@ -26,5 +26,6 @@ solver-benchmarks = { git = "ssh://git@github.com/bodono/solver_benchmarks.git",
 
 [dependency-groups]
 dev = [
-    "ruff>=0.16.8",
+    "ruff",
+    "ty",
 ]

@@ -4,11 +4,12 @@ import os
 from bisect import bisect_right
 from math import isfinite, log10
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import matplotlib.pyplot as plt
 import polars as pl
 from matplotlib.axes import Axes
+from matplotlib.collections import PolyCollection
 from matplotlib.figure import Figure
 from solver_benchmarks.analysis.derive import worst_relative_residual
 from solver_benchmarks.core import status
@@ -333,7 +334,7 @@ def plot_residuals(ax: Axes, results: pl.DataFrame, tol: float) -> None:
             facecolor=color,
             linecolor=color,
         )
-        for body in violin["bodies"]:
+        for body in cast(list[PolyCollection], violin["bodies"]):
             body.set_alpha(0.65)
     ax.set_xticks(range(1, len(solvers) + 1), list(LABELS.values()))
     ax.axhline(log10(tol), color="gray", linestyle=":")
@@ -364,10 +365,7 @@ def create_plots(
         )
         groups[group] = subset
 
-    for name, draw, argument in (
-        ("dolan_more", plot_dolan_more, solvers),
-        ("residuals_violin", plot_residuals, tol),
-    ):
+    for name in ("dolan_more", "residuals_violin"):
         panels, axes = plt.subplots(1, 3, figsize=(18, 5))
         for ax, (group, subset) in zip(axes, groups.items()):
             if name == "residuals_violin":
@@ -379,7 +377,10 @@ def create_plots(
             if subset.is_empty():
                 ax.set_title(f"{group.upper()} (0 problems)")
                 continue
-            draw(ax, subset, argument)
+            if name == "dolan_more":
+                plot_dolan_more(ax, subset, solvers)
+            else:
+                plot_residuals(ax, subset, tol)
             n = subset.select("dataset", "problem").unique().height
             if name == "dolan_more":
                 label = {"all": "All problems", "lp": "LP", "qp": "QP"}[group]
@@ -394,7 +395,10 @@ def create_plots(
             # rather than scaling down the entire figure and its labels.
             height = 2.8 if name == "dolan_more" else 2.5
             fig, individual = plt.subplots(figsize=(119 / 25.4, height))
-            draw(individual, subset, argument)
+            if name == "dolan_more":
+                plot_dolan_more(individual, subset, solvers)
+            else:
+                plot_residuals(individual, subset, tol)
             save_plot(fig, output_dir, f"{name}_{group}.pdf")
         save_plot(panels, output_dir, f"{name}_panels.pdf")
     print(f"Plots saved to {output_dir}")
