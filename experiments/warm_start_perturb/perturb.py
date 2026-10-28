@@ -26,11 +26,10 @@ OUTPUT = HERE / "data" / "warm_runs.csv"
 # many at random. The draw is seeded by `SELECTION_SEED`, so a given count
 # always yields the same problems, and a larger count is not guaranteed to
 # contain the smaller one.
-NETLIB_SAMPLE: int | None = 2
-MAROS_SAMPLE: int | None = 2
+NETLIB_SAMPLE: int | None = None
+MAROS_SAMPLE: int | None = None
 
-# DELTAS = (0.0, 1e-3, 1e-2, 1e-1)
-DELTAS = (0.0, 1e-4, 1e-3, 1e-2, 1e-1)
+DELTAS = (1e-4, 1e-3, 1e-2, 1e-1)
 SEED = 20260918
 SELECTION_SEED = 20260921
 # Problems left out of the experiment entirely, by suite.

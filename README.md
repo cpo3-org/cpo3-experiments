@@ -8,8 +8,8 @@ Benchmark code and recorded results accompanying *Strongly Monotone Central Path
 | [`cpo3_vs_clarabel`](experiments/cpo3_vs_clarabel/) | Comparison with Clarabel: solve counts, linear-algebra work, and infeasibility certificates. |
 | [`presolve_default`](experiments/presolve_default/) | Appendix: performance with default presolve and crossover settings. |
 | [`cplex_dc_opf_residuals`](experiments/cplex_dc_opf_residuals/) | CPLEX residual diagnostics discussed in the LP results. |
-
-The manuscript's warm-start experiments are not included in this repository.
+| [`warm_start_perturb`](experiments/warm_start_perturb/) | Warm starts on perturbed Netlib LP and Maros–Mészáros QP problems. |
+| [`warm_start_mpc`](experiments/warm_start_mpc/) | Warm starts in closed-loop model predictive control. |
 
 ## Setup
 
@@ -32,6 +32,26 @@ uv run --no-sync python experiments/cpo3_vs_clarabel/analyze_results.py
 ```
 
 Tables are printed to the terminal and figures are saved to each experiment's `results/plots/`. The Clarabel comparison also saves CSV summaries in `results/analysis/`. These scripts use recorded residuals; they do not recompute solutions or residuals from problem data.
+
+## Warm-start experiments
+
+
+To run the perturbation experiments, run `perturb.py` before `analyse.py`
+
+```bash
+uv run --no-sync python experiments/warm_start_perturb/perturb.py
+uv run --no-sync python experiments/warm_start_perturb/analyse.py
+```
+
+Set the number of problems drawn from each suite, and the perturbation sizes, with `NETLIB_SAMPLE`, `MAROS_SAMPLE`, and `DELTAS` at the top of `perturb.py`. A sample of `None` uses every eligible problem. 
+
+To reproduce the MPC figure:
+
+```bash
+uv run --no-sync python experiments/warm_start_mpc/mpc.py
+```
+
+This prints iteration counts and saves `figure_warm_mpc.pdf` and `figure_warm_mpc.png` in `experiments/warm_start_mpc/`.
 
 ## Rerun the benchmarks
 
