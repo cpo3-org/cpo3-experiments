@@ -23,12 +23,14 @@ source scripts/paths_savio.sh
 If datasets are missing, run `sbatch scripts/prepare_data_savio.sbatch` and wait for it to finish. Submit the desired experiment:
 
 ```bash
-bash experiments/central_path/run_savio.sh
-bash experiments/interior_point/run_savio.sh
-bash experiments/cpo3_vs_clarabel/run_savio.sh
+bash scripts/submit_savio.sh central_path
+bash scripts/submit_savio.sh interior_point
+bash scripts/submit_savio.sh cpo3_vs_clarabel
 ```
 
-Pass solver/config names to select jobs, for example `bash experiments/cpo3_vs_clarabel/run_savio.sh cpo3`. Reruns replace the selected jobs' raw results. Logs go to `experiments/<experiment>/logs/`; raw results go to `$CPO3_RESULTS_ROOT/<experiment>/results/`.
+Pass solver/config names to select jobs, for example `bash scripts/submit_savio.sh cpo3_vs_clarabel cpo3`. Reruns replace the selected jobs' raw results. Logs go to `experiments/<experiment>/logs/`; raw results go to `$CPO3_RESULTS_ROOT/<experiment>/results/`.
+
+Benchmark jobs share the Slurm resource settings in `scripts/run_savio.sbatch`. Available configurations are discovered from each experiment's `configs/*.yaml` files.
 
 ## Run locally
 
@@ -38,9 +40,9 @@ From the repository root (Linux or macOS, subject to solver availability):
 uv sync --locked
 source scripts/paths_local.sh
 bash scripts/prepare_data_local.sh  # Only needed when datasets are missing.
-bash experiments/central_path/run_local.sh
-bash experiments/interior_point/run_local.sh
-bash experiments/cpo3_vs_clarabel/run_local.sh
+bash scripts/run_local.sh central_path
+bash scripts/run_local.sh interior_point
+bash scripts/run_local.sh cpo3_vs_clarabel
 ```
 
 Local runs execute configurations sequentially, with one problem worker and a 4096 MB per-worker memory limit. Override these with `--workers 4 --memory-mb 8192`. Solver settings, timeouts, and repetitions match Savio. Omitting config names runs every configuration, including commercial solvers. To run a subset, append names such as `cpo3 clarabel`; the existing reports require the complete set of configurations.
