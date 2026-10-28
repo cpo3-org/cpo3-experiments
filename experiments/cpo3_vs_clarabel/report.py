@@ -11,41 +11,10 @@ import polars as pl
 from matplotlib.ticker import PercentFormatter
 from solver_benchmarks.analysis.derive import worst_relative_residual
 
-# Missing types confirmed against the central-path and interior-point experiments.
-MISSING_PROBLEM_TYPES = {
-    "Dual2_5000": "lp",
-    "L1_sixm1000obs": "lp",
-    "L1_sixm250obs": "lp",
-    "L2CTA3D": "lp",
-    "Primal2_1000": "lp",
-    "a2864": "lp",
-    "bdry2": "lp",
-    "dlr1": "lp",
-    "dlr2": "lp",
-    "ex10": "lp",
-    "fhnw-binschedule1": "lp",
-    "highschool1-aigio": "lp",
-    "irish-electricity": "lp",
-    "neos-2075418-temuka": "lp",
-    "neos-3025225": "lp",
-    "neos-5104907-jarama": "lp",
-    "neos-5114902-kasavu": "lp",
-    "ns1644855": "lp",
-    "physiciansched3-3": "lp",
-    "rail02": "lp",
-    "rmine15": "lp",
-    "s250r10": "lp",
-    "s82": "lp",
-    "s100": "lp",
-    "set-cover-model": "lp",
-    "square41": "lp",
-    "square47": "lp",
-    "thk_48": "lp",
-    "thk_63": "lp",
-    "tpl-tub-ws1617": "lp",
-    "8547": "qp",
-    "9008": "qp",
-}
+from cpo3_experiments.toolkit import (
+    PLOT_STYLE,
+    add_problem_types,
+)
 
 SOLVERS = ("clarabel", "cpo3")
 INFEASIBILITY_TOLERANCES = (1e-7, 1e-8, 1e-9, 1e-10)
@@ -73,9 +42,7 @@ def summarize(
     assert (coverage["solver"] == 2).all()
     assert results["problem_type"].drop_nulls().is_in(["lp", "qp"]).all()
 
-    results = results.with_columns(
-        verified_solve(residual, verify_tol).alias("solved")
-    )
+    results = results.with_columns(verified_solve(residual, verify_tol).alias("solved"))
     paired = results.pivot(
         on="solver",
         index=["dataset", "problem", "problem_type"],
@@ -222,7 +189,6 @@ def prepare_results(results_dir: Path) -> pl.DataFrame:
     for path in paths:
         for line in path.read_text().splitlines():
             result = json.loads(line)
-            nnz_p = result["metadata"].get("nnz_p")
             infeasible = result["dataset"].endswith(
                 "_infeasible"
             ) or path.parent.name.endswith("_infeasible")
@@ -236,7 +202,6 @@ def prepare_results(results_dir: Path) -> pl.DataFrame:
                     "dataset": result["dataset"].removesuffix("_infeasible")
                     + ("_infeasible" if infeasible else ""),
                     "problem": result["problem"],
-                    "problem_type": None if nnz_p is None else "qp" if nnz_p else "lp",
                     "tolerance": float(tolerance.split("eps=")[1]),
                     "infeasibility_tolerance": (
                         float(infeasibility_tolerance) if infeasible else None
@@ -257,27 +222,20 @@ def prepare_results(results_dir: Path) -> pl.DataFrame:
             )
     if not rows:
         raise ValueError(f"No benchmark results found in {results_dir}.")
-    return pl.DataFrame(
-        rows,
-        schema_overrides={
-            "problem_type": pl.String,
-            "infeasibility_tolerance": pl.Float64,
-            "run_time_seconds": pl.Float64,
-            "iterations": pl.Int64,
-            "factorizations": pl.Int64,
-            "kkt_solves": pl.Int64,
-            "refinement_passes": pl.Int64,
-            "worst_relative_residual": pl.Float64,
-            "certificate_residual": pl.Float64,
-            "normalized_certificate_residual": pl.Float64,
-        },
-    ).with_columns(
-        pl.col("problem_type")
-        .drop_nulls()
-        .first()
-        .over("dataset", "problem")
-        .fill_null(
-            pl.col("problem").replace_strict(MISSING_PROBLEM_TYPES, default=None)
+    return add_problem_types(
+        pl.DataFrame(
+            rows,
+            schema_overrides={
+                "infeasibility_tolerance": pl.Float64,
+                "run_time_seconds": pl.Float64,
+                "iterations": pl.Int64,
+                "factorizations": pl.Int64,
+                "kkt_solves": pl.Int64,
+                "refinement_passes": pl.Int64,
+                "worst_relative_residual": pl.Float64,
+                "certificate_residual": pl.Float64,
+                "normalized_certificate_residual": pl.Float64,
+            },
         )
     )
 
@@ -287,15 +245,7 @@ def create_plots(results: pl.DataFrame, output: Path, verify_tol: float) -> None
     solvers = ["cpo3", "clarabel"]
     tolerances = sorted(results["infeasibility_tolerance"].unique(), reverse=True)
     colors = [plt.get_cmap("tab10")(i) for i in range(len(tolerances))]
-    # MPC recommends Helvetica/Arial at 8–12 pt; allow local sans-serif fallbacks.
-    plt.rcParams.update(
-        {
-            "font.size": 9,
-            "font.family": "sans-serif",
-            "font.sans-serif": ["Nimbus Sans", "Arial", "DejaVu Sans"],
-            "pdf.use14corefonts": False,
-        }
-    )
+    plt.rcParams.update(PLOT_STYLE)
     fig, axes = plt.subplots(
         1, len(solvers), figsize=(119 / 25.4, 2.5), sharey=True, layout="constrained"
     )
@@ -345,7 +295,9 @@ def create_refinement_plot(
         print("No shared verified problems for the refinement ECDF.")
         return
     if shared["refinement_passes"].null_count():
-        print("Skipping refinement ECDF: some shared verified runs lack refinement counters.")
+        print(
+            "Skipping refinement ECDF: some shared verified runs lack refinement counters."
+        )
         return
     assert (shared["refinement_passes"] >= 0).all()
     count = shared.select("dataset", "problem").unique().height
@@ -355,9 +307,7 @@ def create_refinement_plot(
     # embedded fonts, lines >= 0.3 pt, and titles/captions in the manuscript.
     with plt.rc_context(
         {
-            "font.size": 9,
-            "font.family": "sans-serif",
-            "font.sans-serif": ["Nimbus Sans", "Arial", "DejaVu Sans"],
+            **PLOT_STYLE,
             "axes.labelsize": 9,
             "xtick.labelsize": 9,
             "ytick.labelsize": 9,
@@ -366,7 +316,6 @@ def create_refinement_plot(
             "xtick.major.width": 0.8,
             "ytick.major.width": 0.8,
             "pdf.fonttype": 3,
-            "pdf.use14corefonts": False,
         }
     ):
         fig, ax = plt.subplots(figsize=(119 / 25.4, 2.0), layout="constrained")
@@ -380,7 +329,7 @@ def create_refinement_plot(
             assert len(values) == count
             unique, frequencies = np.unique(values, return_counts=True)
             cumulative = frequencies.cumsum() / len(values)
-            line, = ax.step(
+            (line,) = ax.step(
                 np.r_[0, unique, upper],
                 np.r_[0, cumulative, 1],
                 where="post",
@@ -472,7 +421,9 @@ def main() -> None:
     feasible_summary.write_csv(output / "comparison.csv")
     infeasible_summary.write_csv(output / "comparison_infeasible.csv")
     print(f"Independent verification threshold: {args.verify_tol:g}.")
-    print(f"Verified solves and certificates must finish within {TIME_LIMIT_SECONDS:g}s.")
+    print(
+        f"Verified solves and certificates must finish within {TIME_LIMIT_SECONDS:g}s."
+    )
     print("Iteration and linear-algebra medians use shared verified feasible problems.")
     print(
         "Applications = KKT solves + refinement steps, computed before taking medians."

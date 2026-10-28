@@ -63,6 +63,12 @@ uv run --no-sync python experiments/cpo3_vs_clarabel/report.py
 
 Reports save Parquet files, plots, and applicable CSV summaries under each experiment's `results/`. Solutions are independently verified at `1e-6` with a 300-second cutoff. Central-path and interior-point profiles use median runtimes over three repetitions, treating failures as infinity; at least two repetitions must verify. The cpo3–Clarabel comparison runs each configuration once.
 
+LP/QP classifications are stored in `src/cpo3_experiments/problem_types.csv`, keyed by dataset and problem. Reports require every problem to appear in this catalog. To regenerate it after changing the datasets, prepare the complete data collection, source the matching paths script, then run:
+
+```bash
+uv run --no-sync python scripts/classify_problems.py --data-root "$CPO3_DATA_ROOT"
+```
+
 ## Reproduce CPLEX residual diagnostics
 
 After central-path CPLEX results are available, use the entry point matching their location:
