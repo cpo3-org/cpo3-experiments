@@ -1,24 +1,7 @@
 #!/usr/bin/env bash
-#SBATCH --job-name=prepare-data
-#SBATCH --account=fc_radar
-#SBATCH --partition=savio2_htc
-#SBATCH --qos=savio_normal
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=8
-#SBATCH --time=12:00:00
-#SBATCH --output=scripts/prepare-data-%j.out
-
 set -euo pipefail
-
-source "${CPO3_REPO_ROOT:-$PWD}/scripts/paths.sh"
-
-export SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt
-
 cd "$CPO3_REPO_ROOT"
-
-# Must match tool.uv.sources.solver-benchmarks.rev in pyproject.toml.
-SOLVER_BENCHMARKS_REVISION="854881aee60fe7a4dfec61fcac0f060b379c2621"
+SOLVER_BENCHMARKS_REVISION=$(uv run --no-sync python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["tool"]["uv"]["sources"]["solver-benchmarks"]["rev"])')
 
 bundle_dir=$(mktemp -d)
 trap 'rm -rf "$bundle_dir"' EXIT
