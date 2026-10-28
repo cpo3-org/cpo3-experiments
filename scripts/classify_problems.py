@@ -17,7 +17,7 @@ def main() -> None:
 
     # These configs cover all feasible and infeasible datasets in the reports.
     configs = (
-        repo / "experiments/central_path/configs/cpo3.yaml",
+        repo / "experiments/presolve_off/configs/cpo3.yaml",
         repo / "experiments/cpo3_vs_clarabel/configs/cpo3_infeasible.yaml",
     )
     rows = []

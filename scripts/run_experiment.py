@@ -9,7 +9,7 @@ from pathlib import Path
 
 import yaml
 
-REPEATS = {"central_path": 3, "interior_point": 3, "cpo3_vs_clarabel": 1}
+REPEATS = {"presolve_off": 3, "presolve_default": 3, "cpo3_vs_clarabel": 1}
 
 
 def main():

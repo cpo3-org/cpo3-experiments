@@ -1,6 +1,6 @@
 """Run with: bash experiments/cplex_dc_opf_residuals/run_savio.sh
 
-Reproduce failed DC-OPF LPs from central_path repetition 1.
+Reproduce failed DC-OPF LPs from presolve_off repetition 1.
 Write both sets of absolute metrics to results/comparison.csv and full
 CPLEX quality metrics, our residuals, and the original records to details.jsonl.
 """
@@ -15,10 +15,8 @@ from unittest.mock import patch
 import cplex
 import yaml
 from solver_benchmarks.analysis.derive import worst_relative_residual
-from solver_benchmarks.core.problem import QP, ProblemData
-from solver_benchmarks.datasets.dc_opf import load_matpower_case
+from solver_benchmarks.datasets.dc_opf import DCOPFDataset
 from solver_benchmarks.solvers.cplex_adapter import CPLEXSolverAdapter
-from solver_benchmarks.transforms.dc_opf import dc_opf_lp
 
 METRICS = {
     "primal": ("primal_res", "primal_slack_bound_error_max"),
@@ -48,11 +46,12 @@ def solve_with_quality(problem, settings, output):
 
 def main():
     experiment = Path(__file__).resolve().parent
+    dataset = DCOPFDataset(data_root=os.environ["CPO3_DATA_ROOT"])
     raw_results = (
         Path(os.environ["CPO3_RESULTS_ROOT"])
-        / "central_path/results/cplex/repeat-1/results.jsonl"
+        / "presolve_off/results/cplex/repeat-1/results.jsonl"
     )
-    config = experiment.parent / "central_path/configs/cplex.yaml"
+    config = experiment.parent / "presolve_off/configs/cplex.yaml"
     settings = yaml.safe_load(config.read_text())["solvers"][0]["settings"]
     output = experiment / "results"
     output.mkdir(exist_ok=True)
@@ -81,9 +80,7 @@ def main():
 
             name = previous["problem"]
             print(f"Loading and solving {name}", flush=True)
-            case = load_matpower_case(Path(previous["metadata"]["source"]))
-            qp, metadata = dc_opf_lp(case)
-            problem = ProblemData("dc_opf", name, QP, qp, metadata)
+            problem = dataset.load_problem(name)
             result, quality = solve_with_quality(problem, settings, output)
             record = {
                 "previous": previous,

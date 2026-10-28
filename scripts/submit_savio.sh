@@ -4,9 +4,9 @@ source "$(dirname "$0")/paths_savio.sh"
 cd "$CPO3_REPO_ROOT"
 
 case "${1:-}" in
-    central_path|interior_point|cpo3_vs_clarabel) experiment=$1 ;;
+    presolve_off|presolve_default|cpo3_vs_clarabel) experiment=$1 ;;
     *)
-        echo "Usage: bash scripts/submit_savio.sh {central_path|interior_point|cpo3_vs_clarabel} [configs ...]" >&2
+        echo "Usage: bash scripts/submit_savio.sh {presolve_off|presolve_default|cpo3_vs_clarabel} [configs ...]" >&2
         exit 1
         ;;
 esac

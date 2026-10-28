@@ -1,17 +1,15 @@
+"""Analyze prepared Parquet results and generate tables and plots."""
+
 import argparse
-import json
-import os
 from math import isfinite
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import polars as pl
-from solver_benchmarks.analysis.derive import worst_relative_residual
 
 from cpo3_experiments.toolkit import (
     PLOT_STYLE,
     TIME_LIMIT_SECONDS,
-    add_problem_types,
     aggregate_repeats,
     classify_results,
     plot_dolan_more,
@@ -44,42 +42,6 @@ LINESTYLES = {
 }
 
 REPEATS = {1, 2, 3}
-
-
-def prepare_results(results_dir: Path) -> pl.DataFrame:
-    rows = []
-    for path in sorted(results_dir.glob("*/repeat-*/results.jsonl")):
-        solver = path.parent.parent.name
-        repeat = int(path.parent.name.removeprefix("repeat-"))
-        if solver not in LABELS or repeat not in REPEATS:
-            raise ValueError(f"Unexpected solver or repetition: {path}")
-        with path.open() as file:
-            for line in file:
-                result = json.loads(line)
-                if (
-                    result["solver"] != solver
-                    or result["solver_id"] != f"{solver}_eps=1e-8"
-                ):
-                    raise ValueError(f"Unexpected solver identity in {path}")
-                rows.append(
-                    {
-                        "solver": result["solver"],
-                        "repeat": repeat,
-                        "dataset": result["dataset"],
-                        "problem": result["problem"],
-                        "tolerance": float(result["solver_id"].split("eps=")[1]),
-                        "run_time_seconds": result["run_time_seconds"],
-                        "status": result["status"],
-                        "worst_relative_residual": worst_relative_residual(result),
-                    }
-                )
-    if not rows:
-        raise ValueError(
-            f"No repeated results found in {results_dir}; expected <solver>/repeat-<1|2|3>/results.jsonl."
-        )
-    return add_problem_types(
-        pl.DataFrame(rows, schema_overrides={"worst_relative_residual": pl.Float64})
-    )
 
 
 def create_plots(
@@ -138,20 +100,11 @@ def create_plots(
 def main() -> None:
     experiment = Path(__file__).resolve().parent
     parser = argparse.ArgumentParser()
-    results_root = os.environ.get("CPO3_RESULTS_ROOT")
-    parser.add_argument(
-        "--raw-results-dir",
-        type=Path,
-        default=Path(results_root) / experiment.name / "results"
-        if results_root
-        else None,
-        help="Raw input directory (default: $CPO3_RESULTS_ROOT/central_path/results)",
-    )
     parser.add_argument(
         "--results-dir",
         type=Path,
         default=experiment / "results",
-        help="Output directory for prepared data, tables, and plots",
+        help="Directory containing prepared Parquet data, tables, and plots",
     )
     parser.add_argument(
         "--verify-tol",
@@ -168,22 +121,20 @@ def main() -> None:
         help="Shift in seconds for the geometric mean (default: 10)",
     )
     args = parser.parse_args()
-    if args.raw_results_dir is None:
-        parser.error(
-            "Source scripts/paths_local.sh or scripts/paths_savio.sh, or pass --raw-results-dir."
-        )
     if not isfinite(args.verify_tol) or args.verify_tol <= 0:
         parser.error("--verify-tol must be finite and positive")
     if not isfinite(args.shift) or args.shift <= 0:
         parser.error("--shift must be finite and positive")
 
-    prepared = prepare_results(args.raw_results_dir)
+    parquet = args.results_dir / "results.parquet"
+    if not parquet.is_file():
+        parser.error(f"No prepared results at {parquet}; run prepare_results.py first.")
+    print(f"Reading prepared results from {parquet}")
+    prepared = pl.read_parquet(parquet)
     repetitions = classify_results(prepared, args.verify_tol)
     results = aggregate_repeats(repetitions, list(LABELS), REPEATS)
     args.results_dir.mkdir(parents=True, exist_ok=True)
-    repetitions.write_parquet(args.results_dir / "results.parquet")
     results.write_parquet(args.results_dir / "median_results.parquet")
-    print(f"Prepared {prepared.height} results from {args.raw_results_dir}")
     status_counts = summarize_results(repetitions)
     runtimes = summarize_runtimes(results, args.shift)
     print("Solver stopping tolerance: 1e-8 for every solver")

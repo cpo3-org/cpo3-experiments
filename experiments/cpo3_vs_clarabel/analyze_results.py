@@ -1,6 +1,6 @@
+"""Analyze prepared Parquet results and generate tables and plots."""
+
 import argparse
-import json
-import os
 from math import isfinite, log10
 from pathlib import Path
 from typing import cast
@@ -9,11 +9,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import polars as pl
 from matplotlib.ticker import PercentFormatter
-from solver_benchmarks.analysis.derive import worst_relative_residual
 
 from cpo3_experiments.toolkit import (
     PLOT_STYLE,
-    add_problem_types,
 )
 
 SOLVERS = ("clarabel", "cpo3")
@@ -167,79 +165,6 @@ def certificate_counts_table(results: pl.DataFrame, verify_tol: float) -> pl.Dat
     )
 
 
-def certificate_residual(result: dict, normalized: bool = False) -> float | None:
-    kkt = result.get("kkt") or {}
-    if kkt.get("certificate") != "primal_infeasible" or kkt.get("unsupported_cones"):
-        return None
-    aty_key = "Aty_inf" if normalized else "Aty_rel"
-    bty, aty, cone = (kkt.get(key) for key in ("bty", aty_key, "dual_cone_res"))
-    if bty is None or aty is None or cone is None:
-        return None
-    if not all(isfinite(value) for value in (bty, aty, cone)):
-        return None
-    # Scaling y by -1/(bᵀy) scales both absolute residuals by the same factor.
-    return max(aty, cone) / (-bty if normalized else 1) if bty < 0 else None
-
-
-def prepare_results(results_dir: Path) -> pl.DataFrame:
-    rows = []
-    paths = sorted(results_dir.glob("*/results.jsonl"))
-    if not paths:
-        paths = sorted(results_dir.glob("*/*/results.jsonl"))
-    for path in paths:
-        for line in path.read_text().splitlines():
-            result = json.loads(line)
-            infeasible = result["dataset"].endswith(
-                "_infeasible"
-            ) or path.parent.name.endswith("_infeasible")
-            tolerance, _, infeasibility_tolerance = result["solver_id"].partition(
-                "_infeas="
-            )
-            info = result.get("info") or {}
-            rows.append(
-                {
-                    "solver": result["solver"],
-                    "dataset": result["dataset"].removesuffix("_infeasible")
-                    + ("_infeasible" if infeasible else ""),
-                    "problem": result["problem"],
-                    "tolerance": float(tolerance.split("eps=")[1]),
-                    "infeasibility_tolerance": (
-                        float(infeasibility_tolerance) if infeasible else None
-                    ),
-                    "run_time_seconds": result["run_time_seconds"],
-                    "iterations": result["iterations"],
-                    "factorizations": info.get("factorizations"),
-                    "kkt_solves": info.get("primary_solves", info.get("kkt_solves")),
-                    "refinement_passes": info.get(
-                        "refinement_solves", info.get("refinement_passes")
-                    ),
-                    "worst_relative_residual": worst_relative_residual(result),
-                    "certificate_residual": certificate_residual(result),
-                    "normalized_certificate_residual": certificate_residual(
-                        result, normalized=True
-                    ),
-                }
-            )
-    if not rows:
-        raise ValueError(f"No benchmark results found in {results_dir}.")
-    return add_problem_types(
-        pl.DataFrame(
-            rows,
-            schema_overrides={
-                "infeasibility_tolerance": pl.Float64,
-                "run_time_seconds": pl.Float64,
-                "iterations": pl.Int64,
-                "factorizations": pl.Int64,
-                "kkt_solves": pl.Int64,
-                "refinement_passes": pl.Int64,
-                "worst_relative_residual": pl.Float64,
-                "certificate_residual": pl.Float64,
-                "normalized_certificate_residual": pl.Float64,
-            },
-        )
-    )
-
-
 def create_plots(results: pl.DataFrame, output: Path, verify_tol: float) -> None:
     results = results.filter(pl.col("dataset").str.ends_with("_infeasible"))
     solvers = ["cpo3", "clarabel"]
@@ -361,30 +286,21 @@ def create_refinement_plot(
 def main() -> None:
     experiment = Path(__file__).resolve().parent
     parser = argparse.ArgumentParser()
-    results_root = os.environ.get("CPO3_RESULTS_ROOT")
-    parser.add_argument(
-        "--raw-results-dir",
-        type=Path,
-        default=Path(results_root) / experiment.name / "results"
-        if results_root
-        else None,
-        help="Raw input directory (default: $CPO3_RESULTS_ROOT/cpo3_vs_clarabel/results)",
-    )
     parser.add_argument(
         "--results-dir",
         type=Path,
         default=experiment / "results",
-        help="Output directory for prepared data, tables, and plots",
+        help="Directory containing prepared Parquet data, tables, and plots",
     )
     parser.add_argument("--verify-tol", type=float, default=1e-6)
     args = parser.parse_args()
-    if args.raw_results_dir is None:
-        parser.error(
-            "Source scripts/paths_local.sh or scripts/paths_savio.sh, or pass --raw-results-dir."
-        )
     if not isfinite(args.verify_tol) or args.verify_tol <= 0:
         parser.error("--verify-tol must be finite and positive")
-    results = prepare_results(args.raw_results_dir)
+    parquet = args.results_dir / "results.parquet"
+    if not parquet.is_file():
+        parser.error(f"No prepared results at {parquet}; run prepare_results.py first.")
+    print(f"Reading prepared results from {parquet}")
+    results = pl.read_parquet(parquet)
     expected = {
         "dc_opf",
         "kennington",
@@ -416,8 +332,6 @@ def main() -> None:
     infeasible_summary = summarize_infeasible(
         results.filter(infeasible), args.verify_tol
     )
-    results.write_parquet(args.results_dir / "results.parquet")
-    print(f"Prepared {results.height} results from {args.raw_results_dir}")
     feasible_summary.write_csv(output / "comparison.csv")
     infeasible_summary.write_csv(output / "comparison_infeasible.csv")
     print(f"Independent verification threshold: {args.verify_tol:g}.")
