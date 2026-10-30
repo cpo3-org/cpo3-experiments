@@ -11,6 +11,10 @@ Benchmark code and recorded results accompanying *Strongly Monotone Central Path
 | [`warm_start_perturb`](experiments/warm_start_perturb/) | Warm starts on perturbed Netlib LP and Maros–Mészáros QP problems. |
 | [`warm_start_mpc`](experiments/warm_start_mpc/) | Warm starts in closed-loop model predictive control. |
 
+## Dependencies
+
+The solver under test is [cpo3](https://github.com/cpo3-org/cpo3). The experiments use [solver_benchmarks](https://github.com/bodono/solver_benchmarks) to load and run the benchmark problems. The remaining dependencies are standard scientific Python libraries (NumPy, SciPy, Polars) and the comparison solvers (Clarabel, CPLEX, Gurobi, HiGHS, MOSEK, PIQP). All are installed by `uv sync` below.
+
 ## Setup
 
 Run all commands from the repository root. Install `uv`, Git, and the Rust/native build tools needed by the solver dependencies. Python 3.11 or later is required.
@@ -43,7 +47,7 @@ uv run --no-sync python experiments/warm_start_perturb/perturb.py
 uv run --no-sync python experiments/warm_start_perturb/analyse.py
 ```
 
-Set the number of problems drawn from each suite, and the perturbation sizes, with `NETLIB_SAMPLE`, `MAROS_SAMPLE`, and `DELTAS` at the top of `perturb.py`. A sample of `None` uses every eligible problem. 
+`perturb.py` saves every cold and warm solve to `data/warm_runs.csv`. `analyse.py` prints Table 6 and saves it as `results/warm_start_table.tex`. The full run takes a long time; for a quick smoke test, set `LIMIT` at the top of `perturb.py` to the number of problems to run from each suite. The perturbation sizes are set by `DELTAS`.
 
 To reproduce the MPC figure:
 
@@ -69,7 +73,13 @@ Substitute `presolve_default` or `cpo3_vs_clarabel` for the other experiments. T
 
 Local datasets are stored in `.local/data/` and raw results in `.local/experiments/`. Rerunning a configuration replaces its previous raw results. Preparing results replaces the experiment’s `results/results.parquet`.
 
-Local runs use one worker with a 4096 MB memory limit by default. Override these settings with `--workers` and `--memory-mb`. Runtimes depend on the machine and resource limits.
+Local runs use one worker with a 4096 MB memory limit by default. Override these settings by appending `--workers` and `--memory-mb` to `scripts/local/run.sh`; the memory limit applies to each worker. The full experiments require 20 GB of memory; with the 4096 MB default, problems that need more memory return errors. For example:
+
+```bash
+bash scripts/local/run.sh presolve_off --workers 1 --memory-mb 20480
+```
+
+Runtimes depend on the machine and resource limits.
 
 For Savio, check and source [`scripts/savio/paths.sh`](scripts/savio/paths.sh), prepare missing datasets with `sbatch scripts/savio/prepare_data.sbatch`, and wait for completion before submitting with `bash scripts/savio/submit.sh presolve_off`. After the jobs finish, use the same preparation and analysis commands above.
 
