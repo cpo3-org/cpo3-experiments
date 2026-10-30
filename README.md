@@ -73,7 +73,13 @@ Substitute `presolve_default` or `cpo3_vs_clarabel` for the other experiments. T
 
 Local datasets are stored in `.local/data/` and raw results in `.local/experiments/`. Rerunning a configuration replaces its previous raw results. Preparing results replaces the experiment’s `results/results.parquet`.
 
-Local runs use one worker with a 4096 MB memory limit by default. Override these settings with `--workers` and `--memory-mb`. The full experiments require 20 GB of memory (`--memory-mb 20480`); with the 4096 MB default, problems that need more memory return errors. Runtimes depend on the machine and resource limits.
+Local runs use one worker with a 4096 MB memory limit by default. Override these settings by appending `--workers` and `--memory-mb` to `scripts/local/run.sh`; the memory limit applies to each worker. The full experiments require 20 GB of memory; with the 4096 MB default, problems that need more memory return errors. For example:
+
+```bash
+bash scripts/local/run.sh presolve_off --workers 1 --memory-mb 20480
+```
+
+Runtimes depend on the machine and resource limits.
 
 For Savio, check and source [`scripts/savio/paths.sh`](scripts/savio/paths.sh), prepare missing datasets with `sbatch scripts/savio/prepare_data.sbatch`, and wait for completion before submitting with `bash scripts/savio/submit.sh presolve_off`. After the jobs finish, use the same preparation and analysis commands above.
 
