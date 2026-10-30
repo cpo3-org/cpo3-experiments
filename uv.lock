@@ -383,7 +383,7 @@ requires-dist = [
     { name = "piqp", specifier = "==0.6.4" },
     { name = "polars" },
     { name = "scipy" },
-    { name = "solver-benchmarks", git = "ssh://git@github.com/bodono/solver_benchmarks.git?rev=2bf9474776c93d95b52aaebec41914a6ea83d788" },
+    { name = "solver-benchmarks", git = "https://github.com/bodono/solver_benchmarks.git?rev=2bf9474776c93d95b52aaebec41914a6ea83d788" },
 ]
 
 [package.metadata.requires-dev]
@@ -1596,7 +1596,7 @@ wheels = [
 [[package]]
 name = "solver-benchmarks"
 version = "0.0.1"
-source = { git = "ssh://git@github.com/bodono/solver_benchmarks.git?rev=2bf9474776c93d95b52aaebec41914a6ea83d788#2bf9474776c93d95b52aaebec41914a6ea83d788" }
+source = { git = "https://github.com/bodono/solver_benchmarks.git?rev=2bf9474776c93d95b52aaebec41914a6ea83d788#2bf9474776c93d95b52aaebec41914a6ea83d788" }
 dependencies = [
     { name = "click" },
     { name = "h5py" },
