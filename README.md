@@ -43,7 +43,7 @@ uv run --no-sync python experiments/warm_start_perturb/perturb.py
 uv run --no-sync python experiments/warm_start_perturb/analyse.py
 ```
 
-Set the number of problems drawn from each suite, and the perturbation sizes, with `NETLIB_SAMPLE`, `MAROS_SAMPLE`, and `DELTAS` at the top of `perturb.py`. A sample of `None` uses every eligible problem. 
+`perturb.py` saves every cold and warm solve to `data/warm_runs.csv`. `analyse.py` prints Table 6 and saves it as `results/warm_start_table.tex`. The full run takes a long time; for a quick smoke test, set `LIMIT` at the top of `perturb.py` to the number of problems to run from each suite. The perturbation sizes are set by `DELTAS`.
 
 To reproduce the MPC figure:
 
@@ -69,7 +69,7 @@ Substitute `presolve_default` or `cpo3_vs_clarabel` for the other experiments. T
 
 Local datasets are stored in `.local/data/` and raw results in `.local/experiments/`. Rerunning a configuration replaces its previous raw results. Preparing results replaces the experiment’s `results/results.parquet`.
 
-Local runs use one worker with a 4096 MB memory limit by default. Override these settings with `--workers` and `--memory-mb`. Runtimes depend on the machine and resource limits.
+Local runs use one worker with a 4096 MB memory limit by default. Override these settings with `--workers` and `--memory-mb`. The full experiments require 20 GB of memory (`--memory-mb 20480`); with the 4096 MB default, problems that need more memory return errors. Runtimes depend on the machine and resource limits.
 
 For Savio, check and source [`scripts/savio/paths.sh`](scripts/savio/paths.sh), prepare missing datasets with `sbatch scripts/savio/prepare_data.sbatch`, and wait for completion before submitting with `bash scripts/savio/submit.sh presolve_off`. After the jobs finish, use the same preparation and analysis commands above.
 
