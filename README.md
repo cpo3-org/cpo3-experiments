@@ -11,6 +11,10 @@ Benchmark code and recorded results accompanying *Strongly Monotone Central Path
 | [`warm_start_perturb`](experiments/warm_start_perturb/) | Warm starts on perturbed Netlib LP and Maros–Mészáros QP problems. |
 | [`warm_start_mpc`](experiments/warm_start_mpc/) | Warm starts in closed-loop model predictive control. |
 
+## Dependencies
+
+The solver under test is [cpo3](https://github.com/cpo3-org/cpo3). The experiments use [solver_benchmarks](https://github.com/bodono/solver_benchmarks) to load and run the benchmark problems. The remaining dependencies are standard scientific Python libraries (NumPy, SciPy, Polars) and the comparison solvers (Clarabel, CPLEX, Gurobi, HiGHS, MOSEK, PIQP). All are installed by `uv sync` below.
+
 ## Setup
 
 Run all commands from the repository root. Install `uv`, Git, and the Rust/native build tools needed by the solver dependencies. Python 3.11 or later is required.
